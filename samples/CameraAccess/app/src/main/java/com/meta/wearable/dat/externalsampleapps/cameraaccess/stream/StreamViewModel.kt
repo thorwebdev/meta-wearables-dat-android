@@ -148,7 +148,7 @@ class StreamViewModel(
             Wearables.startStreamSession(
                 getApplication(),
                 deviceSelector,
-                StreamConfiguration(videoQuality = VideoQuality.MEDIUM, 24),
+                StreamConfiguration(videoQuality = VideoQuality.MEDIUM, 1),
             )
                 .also { streamSession = it }
         videoJob = viewModelScope.launch { streamSession.videoStream.collect { handleVideoFrame(it) } }
@@ -307,7 +307,7 @@ class StreamViewModel(
             val success = liveKitManager.startPublishingVideo(
                 width = 640,
                 height = 480,
-                fps = 24
+                fps = 1
             )
             _liveKitState.update { it.copy(isPublishingVideo = success) }
         }
