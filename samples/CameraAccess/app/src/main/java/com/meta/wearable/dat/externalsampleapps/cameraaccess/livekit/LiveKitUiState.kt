@@ -16,8 +16,8 @@ import io.livekit.android.room.track.RemoteVideoTrack
  */
 data class LiveKitUiState(
     val connectionState: LiveKitConnectionState = LiveKitConnectionState.DISCONNECTED,
-    val serverUrl: String = "ws://10.0.0.123:7880",
-    val roomName: String = "voice-room",
+    val serverUrl: String = "wss://gemini-live-test-qrwqjmf5.livekit.cloud",
+    val roomName: String = "quickstart room",
     val participantName: String = "rayban-glasses",
     val isPublishingVideo: Boolean = false,
     val isPublishingAudio: Boolean = false,
@@ -41,11 +41,10 @@ data class LiveKitUiState(
     
     val statusText: String
         get() = when (connectionState) {
-            LiveKitConnectionState.DISCONNECTED -> "Disconnesso"
-            LiveKitConnectionState.CONNECTING -> "Connessione..."
-            LiveKitConnectionState.CONNECTED -> "Connesso a $roomName"
-            LiveKitConnectionState.RECONNECTING -> "Riconnessione..."
-            LiveKitConnectionState.ERROR -> errorMessage ?: "Errore"
+            LiveKitConnectionState.DISCONNECTED -> "Disconnected"
+            LiveKitConnectionState.CONNECTING -> "Connecting..."
+            LiveKitConnectionState.CONNECTED -> "Connected to $roomName"
+            LiveKitConnectionState.RECONNECTING -> "Reconnecting..."
+            LiveKitConnectionState.ERROR -> errorMessage ?: "Error"
         }
 }
-

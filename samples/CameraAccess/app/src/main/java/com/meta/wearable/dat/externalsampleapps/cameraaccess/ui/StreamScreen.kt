@@ -376,7 +376,7 @@ private fun LiveKitStatusBar(
       if (liveKitState.isPublishingVideo) {
         Icon(
             imageVector = Icons.Default.Videocam,
-            contentDescription = "Video occhiale",
+            contentDescription = "Glasses video",
             tint = AppColor.Green,
             modifier = Modifier.size(18.dp)
         )
@@ -384,7 +384,7 @@ private fun LiveKitStatusBar(
       if (liveKitState.isPublishingPhoneCamera) {
         Icon(
             imageVector = Icons.Default.Camera,
-            contentDescription = "Fotocamera telefono",
+            contentDescription = "Phone camera",
             tint = AppColor.Green,
             modifier = Modifier.size(18.dp)
         )
@@ -400,7 +400,7 @@ private fun LiveKitStatusBar(
       if (liveKitState.agentModeActive) {
         Icon(
             imageVector = Icons.Default.SmartToy,
-            contentDescription = "Agente attivo",
+            contentDescription = "Agent active",
             tint = AppColor.Green,
             modifier = Modifier.size(18.dp)
         )
@@ -478,7 +478,7 @@ private fun LiveKitControlsRow(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = if (liveKitState.isConnected) "Disconnetti" else "Connetti AI",
+            text = if (liveKitState.isConnected) "Disconnect" else "Connect AI",
             fontSize = 12.sp
         )
       }
@@ -508,14 +508,14 @@ private fun LiveKitControlsRow(
         ) {
           Icon(
               imageVector = if (liveKitState.isPublishingVideo) Icons.Default.Videocam else Icons.Default.VideocamOff,
-              contentDescription = "Occhiale",
+              contentDescription = "Glasses",
               tint = Color.White,
               modifier = Modifier.size(28.dp)
           )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Occhiale",
+            text = "Glasses",
             color = Color.White,
             fontSize = 10.sp,
             fontWeight = if (liveKitState.isPublishingVideo) FontWeight.Bold else FontWeight.Normal
@@ -540,14 +540,14 @@ private fun LiveKitControlsRow(
         ) {
           Icon(
               imageVector = Icons.Default.Camera,
-              contentDescription = "Fotocamera",
+              contentDescription = "Camera",
               tint = Color.White,
               modifier = Modifier.size(28.dp)
           )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Telefono",
+            text = "Phone",
             color = Color.White,
             fontSize = 10.sp,
             fontWeight = if (liveKitState.isPublishingPhoneCamera) FontWeight.Bold else FontWeight.Normal
@@ -572,14 +572,14 @@ private fun LiveKitControlsRow(
         ) {
           Icon(
               imageVector = Icons.Default.SmartToy,
-              contentDescription = "Agente",
+              contentDescription = "Agent",
               tint = Color.White,
               modifier = Modifier.size(28.dp)
           )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Agente",
+            text = "Agent",
             color = Color.White,
             fontSize = 10.sp,
             fontWeight = if (liveKitState.agentModeActive) FontWeight.Bold else FontWeight.Normal
@@ -608,14 +608,14 @@ private fun LiveKitControlsRow(
           ) {
             Icon(
                 imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Cambia fotocamera",
+                contentDescription = "Switch camera",
                 tint = Color.White
             )
           }
           Spacer(modifier = Modifier.height(4.dp))
           Text(
               text = if (liveKitState.phoneCameraFacing == android.hardware.camera2.CameraCharacteristics.LENS_FACING_BACK) 
-                  "Posteriore" else "Frontale",
+                  "Back" else "Front",
               color = Color.White,
               fontSize = 9.sp
           )
@@ -678,7 +678,7 @@ private fun LiveKitControlsRow(
           }
           Spacer(modifier = Modifier.height(4.dp))
           Text(
-              text = if (liveKitState.isAudioMuted) "Mutato" else "Attivo",
+              text = if (liveKitState.isAudioMuted) "Muted" else "Active",
               color = Color.White,
               fontSize = 9.sp
           )
@@ -703,7 +703,7 @@ private fun LiveKitConfigDialog(
   AlertDialog(
       onDismissRequest = onDismiss,
       title = {
-        Text("Configurazione LiveKit")
+        Text("LiveKit Configuration")
       },
       text = {
         Column(
@@ -721,7 +721,7 @@ private fun LiveKitConfigDialog(
           OutlinedTextField(
               value = roomName,
               onValueChange = { roomName = it },
-              label = { Text("Nome Room") },
+              label = { Text("Room Name") },
               placeholder = { Text("glasses-room") },
               singleLine = true,
               modifier = Modifier.fillMaxWidth()
@@ -730,7 +730,7 @@ private fun LiveKitConfigDialog(
           OutlinedTextField(
               value = participantName,
               onValueChange = { participantName = it },
-              label = { Text("Nome Partecipante") },
+              label = { Text("Participant Name") },
               placeholder = { Text("rayban-user") },
               singleLine = true,
               modifier = Modifier.fillMaxWidth()
@@ -741,12 +741,12 @@ private fun LiveKitConfigDialog(
         Button(
             onClick = { onSave(serverUrl, roomName, participantName) }
         ) {
-          Text("Salva")
+          Text("Save")
         }
       },
       dismissButton = {
         TextButton(onClick = onDismiss) {
-          Text("Annulla")
+          Text("Cancel")
         }
       }
   )
@@ -779,7 +779,7 @@ private fun DebugInfoDialog(
         ) {
           // Quick summary
           Text(
-              text = "📱 IP Telefono: $phoneIp",
+              text = "📱 Phone IP: $phoneIp",
               fontSize = 14.sp,
               fontWeight = FontWeight.Bold,
               color = AppColor.DeepBlue
@@ -795,7 +795,7 @@ private fun DebugInfoDialog(
           
           // Detailed debug info
           Text(
-              text = if (debugInfo.isNotEmpty()) debugInfo else "Nessuna informazione di debug disponibile.\nProva a premere 'Connetti AI' per vedere i dettagli.",
+              text = if (debugInfo.isNotEmpty()) debugInfo else "No debug information available.\nTry pressing 'Connect AI' to see details.",
               fontSize = 12.sp,
               fontFamily = FontFamily.Monospace,
               lineHeight = 16.sp
@@ -805,16 +805,16 @@ private fun DebugInfoDialog(
           
           // Tips
           Text(
-              text = "💡 Suggerimenti:",
+              text = "💡 Tips:",
               fontSize = 14.sp,
               fontWeight = FontWeight.Bold
           )
           Text(
               text = """
-• Verifica che il telefono sia sulla stessa rete WiFi del server
-• L'IP del telefono dovrebbe iniziare con lo stesso prefisso del server (es. 10.0.0.x)
-• Prova a fare ping dal server verso l'IP del telefono
-• Verifica che la porta 8080 sia aperta sul server
+• Verify that the phone is on the same WiFi network as the server
+• The phone's IP should start with the same prefix as the server (e.g. 10.0.0.x)
+• Try to ping from the server to the phone's IP
+• Verify that port 8080 is open on the server
               """.trimIndent(),
               fontSize = 11.sp,
               color = Color.Gray
@@ -823,7 +823,7 @@ private fun DebugInfoDialog(
       },
       confirmButton = {
         Button(onClick = onDismiss) {
-          Text("Chiudi")
+          Text("Close")
         }
       }
   )
@@ -886,7 +886,7 @@ private fun DebugLogViewerDialog(
     onDismiss: () -> Unit,
     context: Context
 ) {
-    var logContent by remember { mutableStateOf("Caricamento log...") }
+    var logContent by remember { mutableStateOf("Loading logs...") }
     var logStats by remember { mutableStateOf("") }
     var refreshTrigger by remember { mutableStateOf(0) }
     
@@ -895,7 +895,7 @@ private fun DebugLogViewerDialog(
         // Initialize logger if needed
         DebugLogger.init(context)
         logContent = DebugLogger.readLogs().ifEmpty { 
-            "Nessun log di debug.\n\nI log vengono creati quando:\n- Attivi video occhiali\n- Attivi fotocamera telefono\n- Invii frame a LiveKit"
+            "No debug logs.\n\nLogs are created when:\n- You activate glasses video\n- You activate phone camera\n- You send frames to LiveKit"
         }
         logStats = DebugLogger.getLogStats()
     }
@@ -925,12 +925,12 @@ private fun DebugLogViewerDialog(
                         onClick = { 
                             DebugLogger.clearLogs()
                             refreshTrigger++
-                            Toast.makeText(context, "Log cancellati", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Logs cleared", Toast.LENGTH_SHORT).show()
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Cancella",
+                            contentDescription = "Clear",
                             tint = AppColor.Red
                         )
                     }
@@ -940,7 +940,7 @@ private fun DebugLogViewerDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Aggiorna",
+                            contentDescription = "Refresh",
                             tint = AppColor.DeepBlue
                         )
                     }
@@ -982,7 +982,7 @@ private fun DebugLogViewerDialog(
                 
                 // Info text
                 Text(
-                    text = "⚠️ WhatsApp invia solo ultimi 50 log",
+                    text = "⚠️ WhatsApp only sends the last 50 logs",
                     fontSize = 10.sp,
                     color = Color.Gray,
                     modifier = Modifier.fillMaxWidth(),
@@ -1002,7 +1002,7 @@ private fun DebugLogViewerDialog(
                             val lastLogs = DebugLogger.readLastLogs(50)
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("Debug Log", lastLogs))
-                            Toast.makeText(context, "Ultimi 50 log copiati!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Last 50 logs copied!", Toast.LENGTH_SHORT).show()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = AppColor.DeepBlue),
                         modifier = Modifier.weight(1f)
@@ -1013,7 +1013,7 @@ private fun DebugLogViewerDialog(
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(2.dp))
-                        Text("Copia", fontSize = 11.sp)
+                        Text("Copy", fontSize = 11.sp)
                     }
                     
                     // Share via WhatsApp (last 50 logs only)
@@ -1038,7 +1038,7 @@ private fun DebugLogViewerDialog(
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("Chiudi")
+                Text("Close")
             }
         }
     )
@@ -1052,7 +1052,7 @@ private fun shareLogToWhatsApp(context: Context, logContent: String) {
         // Limit total message size for WhatsApp
         val maxLength = 4000
         val truncatedLog = if (logContent.length > maxLength) {
-            "... (troncato)\n" + logContent.takeLast(maxLength)
+            "... (truncated)\n" + logContent.takeLast(maxLength)
         } else {
             logContent
         }
@@ -1077,9 +1077,9 @@ private fun shareLogToWhatsApp(context: Context, logContent: String) {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, formattedLog)
             }
-            context.startActivity(Intent.createChooser(shareIntent, "Condividi Debug Log"))
+            context.startActivity(Intent.createChooser(shareIntent, "Share Debug Log"))
         }
     } catch (e: Exception) {
-        Toast.makeText(context, "Errore condivisione: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Error sharing: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }

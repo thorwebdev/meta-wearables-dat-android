@@ -67,6 +67,12 @@ class LiveKitManager(private val context: Context) {
     
     companion object {
         private const val TAG = "LiveKitManager"
+        // This sample hardcodes a token which expires in 24 hours.
+        // Create token for testing via https://docs.livekit.io/intro/basics/cli/start/#generate-access-token
+        private const val wsURL = "wss://gemini-live-test-qrwqjmf5.livekit.cloud"
+        private const val token = "YOUR_TOKEN"
+        // In production you should generate tokens on your server, and your frontend
+        // should request a token from your server.
     }
     
     init {
@@ -75,11 +81,6 @@ class LiveKitManager(private val context: Context) {
     }
     
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
-        .build()
     
     private var room: Room? = null
     private var localVideoTrack: LocalVideoTrack? = null
@@ -116,21 +117,11 @@ class LiveKitManager(private val context: Context) {
     private val _debugInfo = MutableStateFlow("")
     val debugInfo: StateFlow<String> = _debugInfo.asStateFlow()
     
-    // Configuration
-    private var serverUrl: String = ""
-    private var httpServerUrl: String = "" // HTTP server for token generation
-    
     /**
-     * Configure LiveKit server connection
+     * Configure LiveKit server connection (no-op, using hardcoded test values)
      */
     fun configure(serverUrl: String, apiKey: String, apiSecret: String) {
-        this.serverUrl = serverUrl
-        // Extract HTTP URL from WebSocket URL
-        this.httpServerUrl = serverUrl
-            .replace("ws://", "http://")
-            .replace("wss://", "https://")
-            .replace(":7880", ":8080") // Assuming HTTP server is on port 8080
-        Log.d(TAG, "Configured with server: $serverUrl, HTTP: $httpServerUrl")
+        Log.d(TAG, "configure() called, but we are using hardcoded test URL and token.")
     }
     
     /**
@@ -145,51 +136,8 @@ class LiveKitManager(private val context: Context) {
         _connectionState.value = LiveKitConnectionState.CONNECTING
         _roomName.value = roomName
         
-        // Build debug info
-        val debugBuilder = StringBuilder()
-        debugBuilder.appendLine("=== DEBUG INFO ===")
-        debugBuilder.appendLine("Timestamp: ${java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}")
-        debugBuilder.appendLine("")
-        debugBuilder.appendLine("📱 PHONE INFO:")
-        debugBuilder.appendLine("  IP Address: ${getDeviceIpAddress()}")
-        debugBuilder.appendLine("  Network: ${getNetworkType()}")
-        debugBuilder.appendLine("")
-        debugBuilder.appendLine("🖥️ SERVER CONFIG:")
-        debugBuilder.appendLine("  WebSocket URL: $serverUrl")
-        debugBuilder.appendLine("  HTTP URL: $httpServerUrl")
-        debugBuilder.appendLine("  Token endpoint: $httpServerUrl/api/token")
-        debugBuilder.appendLine("")
-        debugBuilder.appendLine("🚪 ROOM CONFIG:")
-        debugBuilder.appendLine("  Room: $roomName")
-        debugBuilder.appendLine("  Participant: $participantName")
-        debugBuilder.appendLine("")
-        
         return try {
-            // First, check server health
-            debugBuilder.appendLine("⏳ Checking server health...")
-            val healthResult = checkServerHealth()
-            debugBuilder.appendLine(healthResult)
-            
-            // Get token from server
-            debugBuilder.appendLine("")
-            debugBuilder.appendLine("⏳ Requesting token...")
-            val token = getTokenFromServer(roomName, participantName)
-            if (token == null) {
-                Log.e(TAG, "Failed to get token from server")
-                debugBuilder.appendLine("❌ TOKEN ERROR:")
-                debugBuilder.appendLine("  Failed to get token from server")
-                debugBuilder.appendLine("  Check if server is reachable")
-                debugBuilder.appendLine("  Check if phone is on same network")
-                _debugInfo.value = debugBuilder.toString()
-                _connectionState.value = LiveKitConnectionState.ERROR
-                _errorMessage.value = "Failed to get token from server"
-                return false
-            }
-            
-            debugBuilder.appendLine("✅ Token received!")
-            debugBuilder.appendLine("  Token length: ${token.length} chars")
-            debugBuilder.appendLine("")
-            debugBuilder.appendLine("⏳ Connecting to LiveKit...")
+            Log.d(TAG, "Connecting to LiveKit with hardcoded URL and token.")
             
             // Create room
             room = LiveKit.create(context)
@@ -198,22 +146,13 @@ class LiveKitManager(private val context: Context) {
             setupRoomEventListeners()
             
             // Connect to room
-            room?.connect(serverUrl, token)
+            room?.connect(wsURL, token)
             
-            debugBuilder.appendLine("✅ Connected successfully!")
-            _debugInfo.value = debugBuilder.toString()
             _connectionState.value = LiveKitConnectionState.CONNECTED
             Log.d(TAG, "Connected to room: $roomName")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to connect: ${e.message}", e)
-            debugBuilder.appendLine("❌ CONNECTION ERROR:")
-            debugBuilder.appendLine("  ${e.javaClass.simpleName}")
-            debugBuilder.appendLine("  ${e.message}")
-            e.cause?.let { cause ->
-                debugBuilder.appendLine("  Cause: ${cause.message}")
-            }
-            _debugInfo.value = debugBuilder.toString()
             _connectionState.value = LiveKitConnectionState.ERROR
             _errorMessage.value = "Connection failed: ${e.message}"
             false
@@ -262,151 +201,9 @@ class LiveKitManager(private val context: Context) {
     }
     
     /**
-     * Get network type
-     */
-    private fun getNetworkType(): String {
-        try {
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            val network = connectivityManager?.activeNetwork
-            val capabilities = connectivityManager?.getNetworkCapabilities(network)
-            
-            return when {
-                capabilities == null -> "No network"
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "WiFi"
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "Cellular"
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "Ethernet"
-                else -> "Other"
-            }
-        } catch (e: Exception) {
-            return "Unknown"
-        }
-    }
-    
-    /**
      * Get last debug info
      */
     fun getLastDebugInfo(): String = _debugInfo.value
-    
-    /**
-     * Check server health
-     */
-    private suspend fun checkServerHealth(): String {
-        return kotlinx.coroutines.withContext(Dispatchers.IO) {
-            val healthUrl = "$httpServerUrl/api/health"
-            try {
-                Log.d(TAG, "Checking health at: $healthUrl")
-                
-                val request = Request.Builder()
-                    .url(healthUrl)
-                    .get()
-                    .build()
-                
-                val startTime = System.currentTimeMillis()
-                val response = httpClient.newCall(request).execute()
-                val elapsed = System.currentTimeMillis() - startTime
-                
-                if (response.isSuccessful) {
-                    val body = response.body?.string() ?: ""
-                    Log.d(TAG, "Health check OK: $body")
-                    "✅ Health check OK (${elapsed}ms)\n  URL: $healthUrl\n  Response: $body"
-                } else {
-                    Log.e(TAG, "Health check failed: ${response.code}")
-                    "⚠️ Health check returned ${response.code}\n  URL: $healthUrl"
-                }
-            } catch (e: java.net.UnknownHostException) {
-                Log.e(TAG, "Health check - Unknown host", e)
-                "❌ Health: DNS Error - Host not found\n  URL: $healthUrl\n  Error: ${e.message}"
-            } catch (e: java.net.ConnectException) {
-                Log.e(TAG, "Health check - Connection refused", e)
-                "❌ Health: Connection REFUSED\n  URL: $healthUrl\n  Il server non è in ascolto sulla porta 8080\n  O il firewall blocca la connessione"
-            } catch (e: java.net.SocketTimeoutException) {
-                Log.e(TAG, "Health check - Timeout", e)
-                "❌ Health: TIMEOUT (10 sec)\n  URL: $healthUrl\n  Il server non risponde"
-            } catch (e: Exception) {
-                Log.e(TAG, "Health check error", e)
-                "❌ Health: ${e.javaClass.simpleName}\n  URL: $healthUrl\n  Error: ${e.message}"
-            }
-        }
-    }
-    
-    /**
-     * Get token from the LiveKit server's HTTP API
-     */
-    private suspend fun getTokenFromServer(roomName: String, participantName: String): String? {
-        return kotlinx.coroutines.withContext(Dispatchers.IO) {
-            try {
-                val jsonBody = JSONObject().apply {
-                    put("room_name", roomName)
-                    put("participant_name", participantName)
-                }
-                
-                val tokenUrl = "$httpServerUrl/api/token"
-                Log.d(TAG, "Requesting token from: $tokenUrl with room=$roomName, participant=$participantName")
-                
-                // Update debug info
-                _debugInfo.update { current -> 
-                    current + "  URL: $tokenUrl\n  Body: ${jsonBody.toString()}\n"
-                }
-                
-                val request = Request.Builder()
-                    .url(tokenUrl)
-                    .post(jsonBody.toString().toRequestBody("application/json".toMediaType()))
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Accept", "application/json")
-                    .build()
-                
-                Log.d(TAG, "Executing HTTP request...")
-                val response = httpClient.newCall(request).execute()
-                Log.d(TAG, "Token response code: ${response.code}")
-                
-                _debugInfo.update { current -> 
-                    current + "  Response code: ${response.code}\n"
-                }
-                
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
-                    Log.d(TAG, "Token response body: $responseBody")
-                    _debugInfo.update { current -> 
-                        current + "  Response: $responseBody\n"
-                    }
-                    val json = JSONObject(responseBody ?: "{}")
-                    val token = json.optString("token", "")
-                    if (token.isNotEmpty()) token else null
-                } else {
-                    val errorBody = response.body?.string()
-                    Log.e(TAG, "Token request failed: ${response.code} - $errorBody")
-                    _debugInfo.update { current -> 
-                        current + "  ❌ HTTP Error: ${response.code}\n  Body: $errorBody\n"
-                    }
-                    null
-                }
-            } catch (e: java.net.UnknownHostException) {
-                Log.e(TAG, "Unknown host: ${e.message}", e)
-                _debugInfo.update { current -> 
-                    current + "  ❌ DNS Error: Host not found\n  Check server IP address\n"
-                }
-                null
-            } catch (e: java.net.ConnectException) {
-                Log.e(TAG, "Connection refused: ${e.message}", e)
-                _debugInfo.update { current -> 
-                    current + "  ❌ Connection refused\n  Server might not be running\n  Or firewall blocking port 8080\n"
-                }
-                null
-            } catch (e: java.net.SocketTimeoutException) {
-                Log.e(TAG, "Timeout: ${e.message}", e)
-                _debugInfo.update { current -> 
-                    current + "  ❌ Timeout (10 sec)\n  Server not responding\n  Check if on same network\n"
-                }
-                null
-            } catch (e: Exception) {
-                Log.e(TAG, "Error getting token: ${e.message}", e)
-                _debugInfo.update { current -> 
-                    current + "  ❌ Error: ${e.javaClass.simpleName}\n  ${e.message}\n"
-                }
-                null
-            }
-        }
-    }
     
     /**
      * Disconnect from LiveKit room
