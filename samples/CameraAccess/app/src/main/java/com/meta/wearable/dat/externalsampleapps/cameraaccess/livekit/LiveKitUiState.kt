@@ -8,7 +8,6 @@
 
 package com.meta.wearable.dat.externalsampleapps.cameraaccess.livekit
 
-import android.hardware.camera2.CameraCharacteristics
 import io.livekit.android.room.track.RemoteVideoTrack
 
 /**
@@ -16,7 +15,6 @@ import io.livekit.android.room.track.RemoteVideoTrack
  */
 data class LiveKitUiState(
     val connectionState: LiveKitConnectionState = LiveKitConnectionState.DISCONNECTED,
-    val serverUrl: String = "wss://gemini-live-test-qrwqjmf5.livekit.cloud",
     val roomName: String = "quickstart room",
     val participantName: String = "rayban-glasses",
     val isPublishingVideo: Boolean = false,
@@ -24,21 +22,14 @@ data class LiveKitUiState(
     val isAudioMuted: Boolean = false,
     val hasRemoteAudioTrack: Boolean = false,
     val remoteVideoTrack: RemoteVideoTrack? = null,
-    val isPublishingPhoneCamera: Boolean = false,
-    val phoneCameraFacing: Int = CameraCharacteristics.LENS_FACING_BACK,
-    val agentModeActive: Boolean = false,
     val errorMessage: String? = null,
-    val isConfigDialogVisible: Boolean = false,
-    val isDebugDialogVisible: Boolean = false,
-    val debugInfo: String = "",
-    val phoneIpAddress: String = ""
 ) {
     val isConnected: Boolean
         get() = connectionState == LiveKitConnectionState.CONNECTED
-    
+
     val canPublish: Boolean
         get() = isConnected
-    
+
     val statusText: String
         get() = when (connectionState) {
             LiveKitConnectionState.DISCONNECTED -> "Disconnected"
