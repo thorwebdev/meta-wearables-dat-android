@@ -373,8 +373,8 @@ class StreamViewModel(
         _uiState.update { it.copy(videoFrame = bitmap) }
 
         // Send frame to LiveKit if publishing
-        if (_liveKitState.value.isPublishingVideo && bitmap != null) {
-            liveKitManager.sendVideoFrame(bitmap)
+        if (_liveKitState.value.isPublishingVideo) {
+            liveKitManager.sendVideoFrame(videoFrame)
         }
     }
 

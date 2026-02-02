@@ -60,7 +60,7 @@ class LiveKitManager(private val context: Context) {
     private var room: Room? = null
     private var localVideoTrack: LocalVideoTrack? = null
     private var localAudioTrack: LocalAudioTrack? = null
-    private var videoCapturer: BitmapVideoCapturer? = null
+    private var videoCapturer: I420VideoCapturer? = null
 
     private var serverUrl: String = ""
     private var token: String = ""
@@ -159,8 +159,8 @@ class LiveKitManager(private val context: Context) {
         }
 
         return try {
-            // Create bitmap video capturer
-            videoCapturer = BitmapVideoCapturer(width, height, fps)
+            // Create I420 video capturer
+            videoCapturer = I420VideoCapturer(width, height, fps)
 
             // Create local video track
             localVideoTrack = currentRoom.localParticipant.createVideoTrack(
@@ -197,10 +197,57 @@ class LiveKitManager(private val context: Context) {
     }
 
     /**
-     * Send a video frame (bitmap) to LiveKit
+     * Send a video frame (raw I420) to LiveKit
      */
-    fun sendVideoFrame(bitmap: Bitmap) {
-        videoCapturer?.onBitmapFrame(bitmap)
+    fun sendVideoFrame(videoFrame: com.meta.wearable.dat.camera.types.VideoFrame) {
+        val capturer = videoCapturer ?: return
+        
+        val width = videoFrame.width
+        val height = videoFrame.height
+        val buffer = videoFrame.buffer
+
+        // Calculate buffer sizes
+        val ySize = width * height
+        val uvSize = (width / 2) * (height / 2)
+
+        // Slice original buffer into YUV byte buffers
+        // Note: position and limit are used to slice the buffer correctly
+        val originalPosition = buffer.position()
+        val originalLimit = buffer.limit()
+
+        try {
+            buffer.position(0)
+            buffer.limit(ySize)
+            val dataY = buffer.slice()
+
+            buffer.position(ySize)
+            buffer.limit(ySize + uvSize)
+            val dataU = buffer.slice()
+
+            buffer.position(ySize + uvSize)
+            buffer.limit(ySize + uvSize * 2)
+            val dataV = buffer.slice()
+
+            val strideY = width
+            val strideUV = width / 2
+
+            capturer.pushI420(
+                width = width,
+                height = height,
+                dataY = dataY,
+                strideY = strideY,
+                dataU = dataU,
+                strideU = strideUV,
+                dataV = dataV,
+                strideV = strideUV,
+                rotationDegrees = 0, // Assuming 0 for now as per DAT SDK frames
+                timestampNs = System.nanoTime()
+            )
+        } finally {
+            // Restore original position and limit
+            buffer.position(originalPosition)
+            buffer.limit(originalLimit)
+        }
     }
 
     /**

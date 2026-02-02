@@ -68,7 +68,7 @@ dependencies {
   implementation(libs.mwdat.mockdevice)
   
   // LiveKit WebRTC SDK
-  implementation("io.livekit:livekit-android:2.2.0")
+  implementation("io.livekit:livekit-android:2.23.3")
   
   // Coroutines for LiveKit
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
